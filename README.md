@@ -11,6 +11,7 @@ Sequencer > Menu > Add > Rendered Strips
 Usually unrendered Scene Strips are not playing in the correct fps, rendering them with this add-on will ensure correct fps. The VSE Scene Strip Display setting will be used for the rendered strips. 
 
 https://user-images.githubusercontent.com/1322593/210172652-2a0b010b-6ef9-4a44-9b76-28392b98d7cb.mp4
+
 Footage from HERO by Daniel Martinez Lara, Blender Studio.
 
 # EDL Export
