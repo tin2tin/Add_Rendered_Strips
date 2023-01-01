@@ -62,7 +62,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
         selected_sequences = bpy.context.selected_sequences
 
         # Get the first empty channel above all strips
-        insert_channel_total = 0
+        insert_channel_total = 1
         for s in sequencer.sequences_all:
             if s.channel >= insert_channel_total:
                 insert_channel_total = s.channel + 1
@@ -116,7 +116,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
 
                 # Set the range in the new scene to fit the pasted strip
                 new_scene.frame_start = int(new_strip.frame_final_start)
-                new_scene.frame_end = (int(new_strip.frame_final_start + new_strip.frame_final_duration)- 1)
+                new_scene.frame_end = (int(new_strip.frame_final_start + new_strip.frame_final_duration)-1)
 
                 # Set the name of the file
                 src_name = strip.name
@@ -165,9 +165,9 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                     if not any(
                         s.channel == insert_channel
                         and s.frame_final_start
-                        <= sequencer.active_strip.frame_final_end
+                        < strip.frame_final_end
                         and s.frame_final_end
-                        >= sequencer.active_strip.frame_final_start
+                        > strip.frame_final_start
                         for s in sequencer.sequences_all
                     ):
                         break
