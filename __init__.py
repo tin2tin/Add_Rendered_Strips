@@ -20,7 +20,7 @@ bl_info = {
     "name": "Add Rendered Strips",
     "author": "tintwotin",
     "version": (1, 0),
-    "blender": (3, 40, 0),
+    "blender": (3, 4, 0),
     "location": "Add > Rendered Strips",
     "description": "Render selected strips to hard disk and add the rendered files as movie strips to the original scene in the first free channel",
     "warning": "",
@@ -48,6 +48,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
         if not context or not context.scene or not context.scene.sequence_editor:
             self.report({"ERROR"}, "No valid context or selected strips")
             return {"CANCELLED"}
+
         # Get the current scene and sequencer
         current_scene = context.scene
         sequencer = current_scene.sequence_editor
@@ -78,6 +79,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 # Select the current strip in the current scene
                 strip.select = True
 
+                # Store current frame for later
                 bpy.context.scene.frame_current = int(strip.frame_start)
 
                 # Copy the strip to the clipboard
@@ -102,10 +104,6 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 new_scene.render.fps_base = current_scene.render.fps_base
                 new_scene.render.sequencer_gl_preview = (current_scene.render.sequencer_gl_preview)
                 new_scene.render.use_sequencer_override_scene_strip = (current_scene.render.use_sequencer_override_scene_strip)
-                # new_scene.render.image_settings.file_format = current_scene.render.image_settings.file_format
-                # new_scene.render.image_settings.color_mode = current_scene.render.image_settings.color_mode
-                # new_scene.render.image_settings.color_depth = current_scene.render.image_settings.color_depth
-                # new_scene.render.image_settings.compression = current_scene.render.image_settings.compression
                 new_scene.world = current_scene.world
 
                 # Paste the strip from the clipboard to the new scene
@@ -147,7 +145,6 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 new_scene.render.filepath = output_path
 
                 # Render the strip to hard disk
-                # bpy.ops.render.render(animation=True, sequencer = True)
                 bpy.ops.render.opengl(animation=True, sequencer=True)
 
                 # Delete the new scene
@@ -174,8 +171,9 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                     else:
                         # Increment the target channel
                         insert_channel += 1
+
                 if strip.type == "SOUND":
-                    # Insert the rendered file as a movie strip in the original scene without video.
+                    # Insert the rendered file as a sound strip in the original scene without video.
                     bpy.ops.sequencer.sound_strip_add(
                         channel=insert_channel,
                         filepath=output_path,
@@ -183,7 +181,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                         overlap=0,
                     )
                 elif strip.type == "SCENE":
-                    # Insert the rendered file as a movie strip and Sound strip in the original.
+                    # Insert the rendered file as a movie strip and sound strip in the original scene.
                     bpy.ops.sequencer.movie_strip_add(
                         channel=insert_channel,
                         filepath=output_path,
@@ -199,6 +197,8 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                         overlap=0,
                         sound=False,
                     )
+
+            # Reset current frame
             bpy.context.scene.frame_current = current_frame_old
         return {"FINISHED"}
 
