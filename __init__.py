@@ -70,7 +70,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
 
         # Loop over the selected strips in the current scene
         for strip in selected_sequences:
-            if strip.type in {"MOVIE", "IMAGE", "SOUND", "SCENE", "TEXT", "COLOR"}:
+            if strip.type in {"MOVIE", "IMAGE", "SOUND", "SCENE", "TEXT", "COLOR", "META"}:
 
                 # Deselect all strips in the current scene
                 for s in sequencer.sequences_all:
@@ -89,7 +89,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 #new_scene = bpy.data.scenes.new(name="New Scene")
 
                 # Create a new scene
-                bpy.ops.scene.new(type='EMPTY')
+                new_scene = bpy.ops.scene.new(type='EMPTY')
 
                 # Get the newly created scene
                 new_scene = bpy.context.scene
@@ -204,6 +204,9 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                         sound=False,
                     )
 
+            # Redraw UI to display the new strip. Remove this if Blender crashes: https://docs.blender.org/api/current/info_gotcha.html#can-i-redraw-during-script-execution
+            bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
+
             # Reset current frame
             bpy.context.scene.frame_current = current_frame_old
         return {"FINISHED"}
@@ -211,7 +214,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
 
 def menu_func(self, context):
     self.layout.separator()
-    self.layout.operator(RenderSelectedStripsOperator.bl_idname)
+    self.layout.operator(RenderSelectedStripsOperator.bl_idname, icon="SEQ_STRIP_DUPLICATE")
 
 
 def register():
