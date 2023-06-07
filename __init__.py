@@ -86,7 +86,13 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 bpy.ops.sequencer.copy()
 
                 # Create a new scene
-                new_scene = bpy.data.scenes.new(name="New Scene")
+                #new_scene = bpy.data.scenes.new(name="New Scene")
+
+                # Create a new scene
+                bpy.ops.scene.new(type='EMPTY')
+
+                # Get the newly created scene
+                new_scene = bpy.context.scene
 
                 # Add a sequencer to the new scene
                 new_scene.sequence_editor_create()
