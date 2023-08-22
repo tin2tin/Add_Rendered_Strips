@@ -112,8 +112,12 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 new_scene.render.use_sequencer_override_scene_strip = (current_scene.render.use_sequencer_override_scene_strip)
                 new_scene.world = current_scene.world
 
-                # Paste the strip from the clipboard to the new scene
-                bpy.ops.sequencer.paste()
+                area = [area for area in context.screen.areas if area.type == "SEQUENCE_EDITOR"][0]
+                 
+                with bpy.context.temp_override(area=area):
+                    
+                    # Paste the strip from the clipboard to the new scene
+                    bpy.ops.sequencer.paste()
 
                 # Get the new strip in the new scene
                 new_strip = (new_scene.sequence_editor.active_strip) = bpy.context.selected_sequences[0]
@@ -178,31 +182,35 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                         # Increment the target channel
                         insert_channel += 1
 
-                if strip.type == "SOUND":
-                    # Insert the rendered file as a sound strip in the original scene without video.
-                    bpy.ops.sequencer.sound_strip_add(
-                        channel=insert_channel,
-                        filepath=output_path,
-                        frame_start=int(strip.frame_final_start),
-                        overlap=0,
-                    )
-                elif strip.type == "SCENE":
-                    # Insert the rendered file as a movie strip and sound strip in the original scene.
-                    bpy.ops.sequencer.movie_strip_add(
-                        channel=insert_channel,
-                        filepath=output_path,
-                        frame_start=int(strip.frame_final_start),
-                        overlap=0,
-                    )
-                else:
-                    # Insert the rendered file as a movie strip in the original scene without sound.
-                    bpy.ops.sequencer.movie_strip_add(
-                        channel=insert_channel,
-                        filepath=output_path,
-                        frame_start=int(strip.frame_final_start),
-                        overlap=0,
-                        sound=False,
-                    )
+                area = [area for area in context.screen.areas if area.type == "SEQUENCE_EDITOR"][0]
+                 
+                with bpy.context.temp_override(area=area):
+
+                    if strip.type == "SOUND":
+                        # Insert the rendered file as a sound strip in the original scene without video.
+                        bpy.ops.sequencer.sound_strip_add(
+                            channel=insert_channel,
+                            filepath=output_path,
+                            frame_start=int(strip.frame_final_start),
+                            overlap=0,
+                        )
+                    elif strip.type == "SCENE":
+                        # Insert the rendered file as a movie strip and sound strip in the original scene.
+                        bpy.ops.sequencer.movie_strip_add(
+                            channel=insert_channel,
+                            filepath=output_path,
+                            frame_start=int(strip.frame_final_start),
+                            overlap=0,
+                        )
+                    else:
+                        # Insert the rendered file as a movie strip in the original scene without sound.
+                        bpy.ops.sequencer.movie_strip_add(
+                            channel=insert_channel,
+                            filepath=output_path,
+                            frame_start=int(strip.frame_final_start),
+                            overlap=0,
+                            sound=False,
+                        )
 
             # Redraw UI to display the new strip. Remove this if Blender crashes: https://docs.blender.org/api/current/info_gotcha.html#can-i-redraw-during-script-execution
             bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
