@@ -32,6 +32,20 @@ import os
 import bpy
 
 
+def find_first_empty_channel(start_frame, end_frame):
+    for ch in range(1, len(bpy.context.scene.sequence_editor.sequences_all) + 1):
+        for seq in bpy.context.scene.sequence_editor.sequences_all:
+            if (
+                seq.channel == ch
+                and seq.frame_final_start < end_frame
+                and (seq.frame_final_start + seq.frame_final_duration) > start_frame
+            ):
+                break
+        else:
+            return ch
+    return 1
+
+
 class RenderSelectedStripsOperator(bpy.types.Operator):
     """Render selected strips to hard disk and add the rendered files as movie strips to the original scene in the first free channel"""
 
@@ -70,7 +84,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
 
         # Loop over the selected strips in the current scene
         for strip in selected_sequences:
-            if strip.type in {"MOVIE", "IMAGE", "SOUND", "SCENE", "TEXT", "COLOR", "META"}:
+            if strip.type in {"MOVIE", "IMAGE", "SOUND", "SCENE", "TEXT", "COLOR", "META", "MASK"}:
 
                 # Deselect all strips in the current scene
                 for s in sequencer.sequences_all:
@@ -113,9 +127,9 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 new_scene.world = current_scene.world
 
                 area = [area for area in context.screen.areas if area.type == "SEQUENCE_EDITOR"][0]
-                 
+
                 with bpy.context.temp_override(area=area):
-                    
+
                     # Paste the strip from the clipboard to the new scene
                     bpy.ops.sequencer.paste()
 
@@ -130,7 +144,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 src_name = strip.name
                 src_dir = ""
                 src_ext = ".mp4"
-                
+
                 # Set the path to the blend file
                 blend_path = bpy.data.filepath
                 if blend_path:
@@ -166,25 +180,11 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 # Reset to total top channel
                 insert_channel = insert_channel_total
 
-                # Loop until an empty space is found
-                while True:
-                    # Check if there are any strips in the target channel that overlap with the range of the selected strips
-                    if not any(
-                        s.channel == insert_channel
-                        and s.frame_final_start
-                        < strip.frame_final_end
-                        and s.frame_final_end
-                        > strip.frame_final_start
-                        for s in sequencer.sequences_all
-                    ):
-                        break
-                    else:
-                        # Increment the target channel
-                        insert_channel += 1
-
                 area = [area for area in context.screen.areas if area.type == "SEQUENCE_EDITOR"][0]
-                 
+
                 with bpy.context.temp_override(area=area):
+
+                    insert_channel = find_first_empty_channel(strip.frame_final_start, strip.frame_final_start+strip.frame_final_duration)
 
                     if strip.type == "SOUND":
                         # Insert the rendered file as a sound strip in the original scene without video.
