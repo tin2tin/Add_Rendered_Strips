@@ -30,6 +30,7 @@ bl_info = {
 
 import os
 import bpy
+from datetime import date
 
 
 def find_first_empty_channel(start_frame, end_frame):
@@ -146,11 +147,7 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 src_ext = ".mp4"
 
                 # Set the path to the blend file
-                blend_path = bpy.data.filepath
-                if blend_path:
-                    src_dir = bpy.path.abspath(os.path.dirname(blend_path))
-                else:
-                    src_dir = bpy.path.abspath(os.path.expanduser("~"))
+                rendered_dir = blend_path = bpy.utils.user_resource("DATAFILES") + "/Rendered_Strips_" + str(date.today()) #bpy.data.filepath
 
                 # Set the render settings for rendering animation with FFmpeg and MP4 with sound
                 bpy.context.scene.render.image_settings.file_format = "FFMPEG"
@@ -158,7 +155,6 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
                 bpy.context.scene.render.ffmpeg.audio_codec = "AAC"
 
                 # Create a new folder for the rendered files
-                rendered_dir = os.path.join(src_dir, src_name + "_rendered")
                 if not os.path.exists(rendered_dir):
                     os.makedirs(rendered_dir)
 
