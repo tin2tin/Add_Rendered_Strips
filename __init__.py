@@ -47,6 +47,23 @@ def find_first_empty_channel(start_frame, end_frame):
     return 1
 
 
+def copy_struct(source, target):
+    if not source or not target:
+        return
+    for name, prop in source.bl_rna.properties.items():
+        if name in ("rna_type", "name", "name_full", "original", "is_evaluated"):
+            continue
+        try:
+            setattr(target, name, getattr(source, name))
+        except AttributeError:
+            new_source = getattr(source, name)
+            new_target = getattr(target, name)
+            if hasattr(new_source, "bl_rna"):
+                copy_struct(new_source, new_target)
+        except TypeError:
+            pass
+
+
 class RenderSelectedStripsOperator(bpy.types.Operator):
     """Render selected strips to hard disk and add the rendered files as movie strips to the original scene in the first free channel"""
 
@@ -136,6 +153,8 @@ class RenderSelectedStripsOperator(bpy.types.Operator):
 
                 # Get the new strip in the new scene
                 new_strip = (new_scene.sequence_editor.active_strip) = bpy.context.selected_sequences[0]
+
+                copy_struct(strip, new_strip)
 
                 # Set the range in the new scene to fit the pasted strip
                 new_scene.frame_start = int(new_strip.frame_final_start)
